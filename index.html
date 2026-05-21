@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'none'; img-src 'self' data:; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none';">
     <title>NEGARIX // COMS-NODE-01</title>
     <style>
         :root {
@@ -12,6 +12,7 @@
             --cyber-dark: #050806;
             --hud-bg: rgba(0, 30, 15, 0.6);
             --border-glow: #005522;
+            --panel-bg: rgba(0, 15, 5, 0.5);
         }
         * {
             box-sizing: border-box;
@@ -28,7 +29,6 @@
             align-items: center;
             overflow: hidden;
             padding: 20px;
-            /* Subtle CRT scanline scan effect */
             background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             background-size: 100% 4px, 6px 100%;
         }
@@ -38,10 +38,9 @@
             background: var(--hud-bg);
             border: 1px solid var(--matrix-green);
             box-shadow: 0 0 20px var(--border-glow);
-            padding: 30px;
+            padding: 25px;
             position: relative;
         }
-        /* Tactical Corner Accents */
         .hud-container::before, .hud-container::after {
             content: '';
             position: absolute;
@@ -54,8 +53,8 @@
 
         .header {
             border-bottom: 1px solid var(--matrix-green);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -78,30 +77,89 @@
             100% { opacity: 0.3; }
         }
         .terminal-log {
-            font-size: 0.9rem;
-            line-height: 1.6;
-            margin-bottom: 25px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
         }
-        .log-line {
-            display: flex;
-            margin-bottom: 6px;
+        .log-line { display: flex; }
+        .log-line .label { width: 110px; color: #00aa44; }
+        .log-line .value { color: var(--matrix-green); }
+
+        /* --- ELECTRONIC WARFARE HUD COMPONENT --- */
+        .ew-array-panel {
+            border: 1px dashed rgba(0, 255, 102, 0.5);
+            background: var(--panel-bg);
+            padding: 12px;
+            margin-bottom: 15px;
         }
-        .log-line .label {
-            width: 140px;
+        .ew-title {
+            font-size: 0.8rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            color: var(--matrix-green);
+            text-shadow: 0 0 5px rgba(0, 255, 102, 0.4);
+        }
+        .ew-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .ew-card {
+            background: rgba(0, 45, 20, 0.2);
+            border: 1px solid rgba(0, 255, 102, 0.2);
+            padding: 6px;
+            text-align: center;
+        }
+        .ew-label {
+            font-size: 0.65rem;
             color: #00aa44;
+            margin-bottom: 2px;
+            text-transform: uppercase;
         }
-        .log-line .value {
+        .ew-value {
+            font-size: 0.85rem;
+            font-weight: bold;
             color: var(--matrix-green);
         }
+        .radar-sweep-container {
+            background: #010402;
+            border: 1px solid rgba(0, 255, 102, 0.25);
+            padding: 6px;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-size: 0.75rem;
+            color: var(--matrix-green);
+        }
+        .radar-bar {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 35%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 102, 0.25), transparent);
+            animation: sweep 2.5s linear infinite;
+        }
+        @keyframes sweep {
+            0% { left: -35%; }
+            100% { left: 100%; }
+        }
+        /* ---------------------------------------- */
+
         .matrix-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
-            margin-top: 15px;
+            font-size: 0.8rem;
         }
         .matrix-table th, .matrix-table td {
-            border: 1px solid rgba(0, 255, 102, 0.3);
-            padding: 8px 12px;
+            border: 1px solid rgba(0, 255, 102, 0.2);
+            padding: 6px 10px;
             text-align: left;
         }
         .matrix-table th {
@@ -114,9 +172,9 @@
         }
         .footer-warning {
             border-top: 1px dashed var(--matrix-green);
-            padding-top: 15px;
-            margin-top: 20px;
-            font-size: 0.75rem;
+            padding-top: 10px;
+            margin-top: 15px;
+            font-size: 0.7rem;
             text-align: center;
             color: #ff3333;
             letter-spacing: 1px;
@@ -133,21 +191,31 @@
     </div>
 
     <div class="terminal-log">
-        <div class="log-line">
-            <span class="label">[ DOMAIN ]</span>
-            <span class="value">negarix.uk</span>
+        <div class="log-line"><span class="label">[ DOMAIN ]</span><span class="value">negarix.uk</span></div>
+        <div class="log-line"><span class="label">[ INTERFACE ]</span><span class="value">mta-sts.negarix.uk</span></div>
+        <div class="log-line"><span class="label">[ PROTOCOL ]</span><span class="value">MTA-STS ENFORCED</span></div>
+        <div class="log-line"><span class="label">[ MATRIX ]</span><span class="value">ZERO-TRUST ACTIVE</span></div>
+    </div>
+
+    <div class="ew-array-panel">
+        <div class="ew-title">📡 SIGINT_TACTICAL_MONITOR // FREQ_HOPPING_LOOP</div>
+        <div class="ew-grid">
+            <div class="ew-card">
+                <div class="ew-label">Vector Core Hash</div>
+                <div class="ew-value" id="ew-hash">0x000000</div>
+            </div>
+            <div class="ew-card">
+                <div class="ew-label">RF Spectrum Hopping</div>
+                <div class="ew-value" id="ew-freq">433.920 MHz</div>
+            </div>
+            <div class="ew-card">
+                <div class="ew-label">Signal Floor Ratio</div>
+                <div class="ew-value" id="ew-snr">-92.4 dBm</div>
+            </div>
         </div>
-        <div class="log-line">
-            <span class="label">[ INTERFACE ]</span>
-            <span class="value">mta-sts.negarix.uk</span>
-        </div>
-        <div class="log-line">
-            <span class="label">[ PROTOCOL ]</span>
-            <span class="value">MTA-STS / RFC-8461 ENFORCED</span>
-        </div>
-        <div class="log-line">
-            <span class="label">[ MATRIX ]</span>
-            <span class="value">STATIC ASSET HOSTING // ZERO-TRUST ACTIVE</span>
+        <div class="radar-sweep-container">
+            <div class="radar-bar"></div>
+            🔬 INTERCEPT LOG: <span id="ew-log">SYS_INIT // STANDING BY FOR RECON PATTERNS...</span>
         </div>
     </div>
 
@@ -156,37 +224,74 @@
             <tr>
                 <th>DEFENSE VECTOR</th>
                 <th>PROTOCOL FRAMEWORK</th>
-                <th>DEFENSIVE STATUS</th>
+                <th>STATUS</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>TRANSPORT</td>
-                <td>MTA-STS (ENFORCE)</td>
+                <td>TRANSPORT PROTECT</td>
+                <td>MTA-STS (ENFORCE STYLE)</td>
                 <td class="secured-tag">[ ARMED ]</td>
             </tr>
             <tr>
-                <td>CRYPTO SIGN</td>
-                <td>DKIM / DNSSEC</td>
+                <td>CRYPTOGRAPHIC SIGN</td>
+                <td>DKIM / DNSSEC PERIMETER</td>
                 <td class="secured-tag">[ SIGNED ]</td>
             </tr>
             <tr>
-                <td>IDENTITY FLX</td>
-                <td>SPF / DMARC (QUARANTINE)</td>
+                <td>SPOOF MITIGATION</td>
+                <td>SPF / DMARC QUARANTINE</td>
                 <td class="secured-tag">[ LOCKED ]</td>
             </tr>
             <tr>
-                <td>PERIMETER</td>
-                <td>CAA (ANTI-WILDCARD)</td>
-                <td class="secured-tag">[ REINFORCED ]</td>
+                <td>HIJACK GUARD</td>
+                <td>CAA ANTI-WILDCARD DIRECTIVE</td>
+                <td class="secured-tag">[ BLOCKED ]</td>
             </tr>
         </tbody>
     </table>
 
     <div class="footer-warning">
-        WARNING: UN-AUTHORIZED HANDSHAKES ARE MECHANICALLY TERMINATED. ALL MALFORMED SESSIONS ARE DISCARDED WITH ZERO TELEMETRY RETURNED.
+        WARNING: UN-AUTHORIZED HANDSHAKES ARE MECHANICALLY TERMINATED. MALFORMED SESSIONS DISCARDED.
     </div>
 </div>
+
+<script>
+    const hashDisplay = document.getElementById('ew-hash');
+    const freqDisplay = document.getElementById('ew-freq');
+    const snrDisplay = document.getElementById('ew-snr');
+    const logDisplay = document.getElementById('ew-log');
+
+    const tacticalPhrases = [
+        "MTA_SHIELD: Connection handshake bound to strict TLS 1.3 encryption.",
+        "SIGINT: Noise floor convergence stabilized. Scanner looping.",
+        "DMARC_ENG: Intercepted spoof signature vector -- malformed block dropped.",
+        "PERIMETER: CAA entry validated. Unauthorized issuance vector un-routable.",
+        "Z-TRUST: Continuous identity evaluation active. Zero leaks recorded.",
+        "CIPHER_MATRIX: Regenerating pseudo-random ephemeral routing seeds.",
+        "SEC_ALPHA: Port probing attempts discarded with absolute telemetry silence."
+    ];
+
+    setInterval(() => {
+        // 1. Rapidly rotate cryptographic hexadecimal memory addresses
+        const dynamicHex = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase().padStart(6, '0');
+        hashDisplay.textContent = dynamicHex;
+
+        // 2. Simulate rapid Frequency Hopping Spread Spectrum tracking
+        const dynamicFreq = (433.920 + (Math.random() * 2 - 1) * 0.07).toFixed(3);
+        freqDisplay.textContent = dynamicFreq + " MHz";
+
+        // 3. Modulate Signal-to-Noise Floor metrics
+        const dynamicSNR = (91.5 + Math.random() * 6.5).toFixed(1);
+        snrDisplay.textContent = "-" + dynamicSNR + " dBm";
+        
+        // 4. Periodically dump active defense actions to intercept scanner log
+        if(Math.random() > 0.88) {
+            const selectedPhrase = tacticalPhrases[Math.floor(Math.random() * tacticalPhrases.length)];
+            logDisplay.textContent = selectedPhrase;
+        }
+    }, 280);
+</script>
 
 </body>
 </html>
