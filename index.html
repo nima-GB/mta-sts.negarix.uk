@@ -1,65 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
     <style>
-        :root { --tac-cyan: #00ff41; --tac-red: #ff3e3e; --bg: #050505; }
-        body { 
-            background: var(--bg); 
-            color: var(--tac-cyan); 
-            font-family: 'Courier New', monospace; 
-            margin: 0; height: 100vh; display: flex; 
-            justify-content: center; align-items: center; 
+        :root {
+            --term-green: #00ff41;
+            --term-dim: #004d14;
+            --bg-black: #050505;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--term-green);
+            font-family: 'Courier New', Courier, monospace;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
-            /* Dystopian Scanlines */
-            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
         }
 
-        #gatekeeper { 
-            border: 2px solid var(--tac-cyan); 
-            padding: 40px; text-align: center; width: 320px; 
-            background: #000; box-shadow: 0 0 20px rgba(0,255,65,0.2);
-            transition: all 0.1s;
+        /* CRT Scanline Overlay */
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
         }
 
-        /* Glitch Animation */
-        .glitch-active { 
-            animation: shake 0.2s infinite; 
-            border-color: var(--tac-red) !important;
-            color: var(--tac-red) !important;
+        .terminal-window {
+            width: 400px;
+            border: 1px solid var(--term-green);
+            padding: 30px;
+            background: rgba(0, 20, 0, 0.9);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+            position: relative;
+            z-index: 5;
         }
 
-        @keyframes shake {
-            0% { transform: translate(2px, 1px); }
-            50% { transform: translate(-2px, -1px); }
-            100% { transform: translate(0, 0); }
+        .header { border-bottom: 1px solid var(--term-green); padding-bottom: 10px; margin-bottom: 20px; }
+        .meta { font-size: 0.65rem; color: var(--term-dim); margin-bottom: 5px; }
+
+        input {
+            background: #000;
+            border: 1px solid var(--term-green);
+            color: var(--term-green);
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
+            margin-bottom: 20px;
+            text-transform: uppercase;
         }
 
-        input { background: #111; border: 1px solid var(--tac-cyan); color: var(--tac-cyan); padding: 10px; width: 100%; margin-bottom: 10px; }
-        button { background: var(--tac-cyan); color: #000; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+        button {
+            background: transparent;
+            border: 1px solid var(--term-green);
+            color: var(--term-green);
+            padding: 10px 20px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        button:hover { background: var(--term-green); color: #000; }
+
+        .glitch-flash { animation: flash-red 0.5s ease-in-out; }
+        @keyframes flash-red { 0%, 100% { border-color: var(--term-green); } 50% { border-color: red; color: red; } }
     </style>
 </head>
 <body>
+    <div class="crt-overlay"></div>
 
-    <div id="gatekeeper">
-        <h3>SECURE_NODE_ALPHA</h3>
-        <input type="password" id="key" placeholder="INPUT_KEY_VECTOR...">
-        <button onclick="verify()">ACCESS</button>
+    <div class="terminal-window" id="terminal">
+        <div class="meta">SYSTEM_ROOT // NEGARIX_OS v.4.02</div>
+        <div class="header">
+            <h3>SECURE_ENCLAVE_LOGIN</h3>
+        </div>
+        <p style="font-size: 0.8rem;">IDENTIFY_KEY_VECTOR:</p>
+        <input type="password" id="key" placeholder=">_ INPUT_AUTH_KEY" autocomplete="off">
+        <button onclick="verify()">ESTABLISH_HANDSHAKE</button>
+        <div class="meta" style="margin-top: 20px;">ACCESS_LOG: 0x4A2F_LOCKED</div>
     </div>
 
     <script>
         function verify() {
-            const key = document.getElementById('key').value;
-            const gate = document.getElementById('gatekeeper');
-            
-            if(key === "ALPHA-9") {
-                sessionStorage.setItem('access', 'granted');
+            const input = document.getElementById('key').value;
+            const term = document.getElementById('terminal');
+
+            if(input === "ALPHA-9") {
+                sessionStorage.setItem('sec_clearance', 'GRANTED');
                 window.location.href = "c2-ops.html";
             } else {
-                // Apply glitch class
-                gate.classList.add('glitch-active');
-                // Remove after 600ms
-                setTimeout(() => gate.classList.remove('glitch-active'), 600);
+                term.classList.add('glitch-flash');
+                setTimeout(() => term.classList.remove('glitch-flash'), 500);
             }
         }
     </script>
