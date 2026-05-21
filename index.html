@@ -1,110 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEGARIX // AUTH_GATE</title>
     <style>
-        :root {
-            --tac-cyan: #00e5ff;
-            --tac-red: #ff3838;
-            --bg-deep: #010408;
-        }
+        :root { --tac-cyan: #00ff41; --tac-red: #ff3e3e; --bg: #050505; }
         body { 
-            background: var(--bg-deep); 
+            background: var(--bg); 
             color: var(--tac-cyan); 
             font-family: 'Courier New', monospace; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0;
+            margin: 0; height: 100vh; display: flex; 
+            justify-content: center; align-items: center; 
             overflow: hidden;
-        }
-        
-        #gatekeeper { 
-            border: 1px solid var(--tac-cyan); 
-            padding: 40px; 
-            text-align: center; 
-            width: 320px; 
-            background: rgba(1, 4, 8, 0.9);
-            transition: all 0.1s ease;
+            /* Dystopian Scanlines */
+            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
         }
 
-        /* Glitch/Intrusion State */
-        .intrusion-alert {
-            animation: shake 0.2s linear infinite;
+        #gatekeeper { 
+            border: 2px solid var(--tac-cyan); 
+            padding: 40px; text-align: center; width: 320px; 
+            background: #000; box-shadow: 0 0 20px rgba(0,255,65,0.2);
+            transition: all 0.1s;
+        }
+
+        /* Glitch Animation */
+        .glitch-active { 
+            animation: shake 0.2s infinite; 
             border-color: var(--tac-red) !important;
             color: var(--tac-red) !important;
-            box-shadow: 0 0 15px var(--tac-red) !important;
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
+            0% { transform: translate(2px, 1px); }
+            50% { transform: translate(-2px, -1px); }
+            100% { transform: translate(0, 0); }
         }
 
-        input { 
-            background: transparent; 
-            border: 1px solid var(--tac-cyan); 
-            color: #fff; 
-            padding: 12px; 
-            width: 100%; 
-            box-sizing: border-box; 
-            margin-bottom: 20px; 
-            text-align: center;
-            letter-spacing: 2px;
-        }
-        
-        button { 
-            background: var(--tac-cyan); 
-            color: #000; 
-            border: none; 
-            padding: 12px 20px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            width: 100%; 
-            text-transform: uppercase;
-        }
-        
-        button:hover { opacity: 0.8; }
+        input { background: #111; border: 1px solid var(--tac-cyan); color: var(--tac-cyan); padding: 10px; width: 100%; margin-bottom: 10px; }
+        button { background: var(--tac-cyan); color: #000; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="gatekeeper">
         <h3>SECURE_NODE_ALPHA</h3>
-        <p style="font-size: 0.7rem; margin-bottom: 20px;">[ AWAITING_HANDSHAKE ]</p>
-        <input type="password" id="clearance-key" placeholder="INPUT_KEY_VECTOR..." autocomplete="off">
-        <button onclick="verify()">INITIATE_HANDSHAKE</button>
+        <input type="password" id="key" placeholder="INPUT_KEY_VECTOR...">
+        <button onclick="verify()">ACCESS</button>
     </div>
 
     <script>
-        // CONFIG: Replace 'ALPHA-9' with your desired key
-        const VALID_KEY = "ALPHA-9";
-
         function verify() {
-            const input = document.getElementById('clearance-key').value;
+            const key = document.getElementById('key').value;
             const gate = document.getElementById('gatekeeper');
-
-            if(input === VALID_KEY) {
-                // ISSUE PASSPORT
-                sessionStorage.setItem('sec_clearance', 'GRANTED'); 
-                // REDIRECT TO HUD
+            
+            if(key === "ALPHA-9") {
+                sessionStorage.setItem('access', 'granted');
                 window.location.href = "c2-ops.html";
             } else {
-                // TRIGGER INTRUSION ALERT
-                gate.classList.add('intrusion-alert');
-                
-                // Reset after 500ms
-                setTimeout(() => {
-                    gate.classList.remove('intrusion-alert');
-                }, 500);
-                
-                console.warn("UNAUTHORIZED_ACCESS_ATTEMPT_LOGGED");
-                document.getElementById('clearance-key').value = ''; // Clear input
+                // Apply glitch class
+                gate.classList.add('glitch-active');
+                // Remove after 600ms
+                setTimeout(() => gate.classList.remove('glitch-active'), 600);
             }
         }
     </script>
