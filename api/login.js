@@ -1,25 +1,45 @@
-export default function handler(req, res) {
-    // 1. DYNAMIC CORS: Allow the domain making the request
-    const origin = req.headers.origin;
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-    res.setHeader('Access-Control-Allow-Credentials', true);
+import crypto from 'crypto';
+
+export default async function handler(req, res) {
+    // CORS Headers
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    // 2. Handle Preflight (OPTIONS request)
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
+    if (req.method === 'OPTIONS') return res.status(200).end();
 
-    // 3. Handle POST request
     if (req.method === 'POST') {
-        const { key } = req.body;
-        
-        if (key === process.env.SECRET_KEY) {
-            return res.status(200).json({ authorized: true });
-        } else {
-            return res.status(401).json({ authorized: false });
+        try {
+            // Check if SECRET_KEY is set in Vercel
+            const secret = process.env.SECRET_KEY;
+            if (!secret) {
+                console.error("DEBUG: SECRET_KEY environment variable is missing!");
+                return res.status(500).json({ error: "Server Configuration Error" });
+            }
+
+            const { key } = req.body;
+            if (!key) return res.status(400).json({ error: 'Missing key' });
+
+            // Hardening: Mandatory delay to prevent brute force
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Cryptographic comparison
+            const keyBuffer = Buffer.from(key, 'utf8');
+            const secretBuffer = Buffer.from(secret, 'utf8');
+
+            let isMatch = false;
+            if (keyBuffer.length === secretBuffer.length) {
+                isMatch = crypto.timingSafeEqual(keyBuffer, secretBuffer);
+            }
+
+            if (isMatch) {
+                return res.status(200).json({ authorized: true });
+            } else {
+                return res.status(401).json({ authorized: false });
+            }
+        } catch (err) {
+            console.error("DEBUG: API CRASHED:", err);
+            return res.status(500).json({ error: "Internal Server Error" });
         }
     }
 
