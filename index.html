@@ -21,7 +21,6 @@
             overflow: hidden;
         }
 
-        /* CRT Scanline Overlay */
         .crt-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -67,7 +66,8 @@
             transition: 0.3s;
         }
 
-        button:hover { background: var(--term-green); color: #000; }
+        button:hover:not(:disabled) { background: var(--term-green); color: #000; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .glitch-flash { animation: flash-red 0.5s ease-in-out; }
         @keyframes flash-red { 0%, 100% { border-color: var(--term-green); } 50% { border-color: red; color: red; } }
@@ -83,21 +83,44 @@
         </div>
         <p style="font-size: 0.8rem;">IDENTIFY_KEY_VECTOR:</p>
         <input type="password" id="key" placeholder=">_ INPUT_AUTH_KEY" autocomplete="off">
-        <button onclick="verify()">ESTABLISH_HANDSHAKE</button>
+        <button id="auth-btn" onclick="verify()">ESTABLISH_HANDSHAKE</button>
         <div class="meta" style="margin-top: 20px;">ACCESS_LOG: 0x4A2F_LOCKED</div>
     </div>
 
     <script>
-        function verify() {
+        async function verify() {
             const input = document.getElementById('key').value;
             const term = document.getElementById('terminal');
+            const btn = document.getElementById('auth-btn');
 
-            if(input === "ALPHA-9") {
-                sessionStorage.setItem('sec_clearance', 'GRANTED');
-                window.location.href = "c2-ops.html";
-            } else {
-                term.classList.add('glitch-flash');
-                setTimeout(() => term.classList.remove('glitch-flash'), 500);
+            // Hardening: Disable button during transmission
+            btn.disabled = true;
+            btn.textContent = "HANDSHAKING...";
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: input })
+                });
+
+                const data = await response.json();
+
+                if (data.authorized) {
+                    sessionStorage.setItem('sec_clearance', 'GRANTED');
+                    window.location.href = "c2-ops.html";
+                } else {
+                    term.classList.add('glitch-flash');
+                    setTimeout(() => {
+                        term.classList.remove('glitch-flash');
+                        btn.disabled = false;
+                        btn.textContent = "ESTABLISH_HANDSHAKE";
+                    }, 500);
+                }
+            } catch (err) {
+                console.error("Connection failed");
+                btn.disabled = false;
+                btn.textContent = "ESTABLISH_HANDSHAKE";
             }
         }
     </script>
