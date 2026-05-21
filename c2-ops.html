@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { background: #010408; color: #00e5ff; font-family: 'Courier New', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .gate { border: 1px solid #00e5ff; padding: 40px; text-align: center; }
+        input { background: transparent; border: 1px solid #00e5ff; color: #fff; padding: 10px; width: 200px; }
+        button { background: #00e5ff; border: none; padding: 10px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="gate">
+        <h1>NEGARIX // ACCESS_CONTROL</h1>
+        <p>ENTER CLEARANCE KEY TO PROCEED TO SECURE NODE</p>
+        <input type="password" id="key" placeholder="KEY_VECTOR">
+        <button onclick="check()">INITIATE</button>
+    </div>
+    <script>
+        function check() {
+            if(document.getElementById('key').value === "ALPHA") window.location.href = "c2-ops.html";
+            else alert("ACCESS DENIED: SECURITY ALERT LOGGED");
+        }
+    </script>
+</body>
+</html>
