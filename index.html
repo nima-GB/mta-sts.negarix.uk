@@ -2,347 +2,410 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none';">
-    <title>NEGARIX // SIGINT-C2</title>
+    <title>NEGARIX // QUANTUM-C2-SIGINT</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-        
         :root {
             --tac-cyan: #00e5ff;
-            --tac-cyan-dim: rgba(0, 229, 255, 0.2);
+            --tac-cyan-glow: rgba(0, 229, 255, 0.3);
             --tac-amber: #ffaa00;
-            --tac-red: #ff3333;
-            --bg-deep: #02060a;
-            --panel-bg: rgba(2, 12, 20, 0.7);
-            --grid-line: rgba(0, 229, 255, 0.08);
+            --tac-red: #ff3838;
+            --tac-green: #00ff66;
+            --bg-deep: #010408;
+            --panel-bg: rgba(2, 10, 18, 0.85);
+            --grid-line: rgba(0, 229, 255, 0.05);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* Tactical System Font Stack (Air-Gapped Compliance) */
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Courier New', Consolas, Monaco, 'Lucida Console', monospace;
+            -webkit-font-smoothing: antialiased;
+        }
         
         body {
             background-color: var(--bg-deep);
             color: var(--tac-cyan);
-            font-family: 'Share Tech Mono', 'Courier New', monospace;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            padding: 10px;
+            overflow-x: hidden;
             background-image: 
                 linear-gradient(var(--grid-line) 1px, transparent 1px),
                 linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-            background-size: 30px 30px;
+            background-size: 25px 25px;
         }
 
-        /* CRT Screen Overlay & Scanlines */
+        /* Vintage CRT Cathode Scanline Simulation Overlay */
         body::before {
             content: " ";
             display: block;
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 100;
-            background-size: 100% 3px, 3px 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.04));
+            z-index: 999;
+            background-size: 100% 4px, 4px 100%;
             pointer-events: none;
+            position: fixed;
         }
 
-        .c2-container {
+        /* Responsive Mobile-First Master Shell Grid */
+        .c2-shell {
             width: 100%;
-            max-width: 900px;
-            height: 95vh;
+            max-width: 1200px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            padding: 15px;
             position: relative;
             z-index: 10;
         }
 
-        /* High-End Targeting Borders */
+        /* Modular Tactical Panels */
         .panel {
             background: var(--panel-bg);
-            border: 1px solid var(--tac-cyan-dim);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            padding: 12px;
             position: relative;
-            padding: 15px;
-            backdrop-filter: blur(4px);
+            box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.05);
         }
+        
+        /* Tactical Reticle Border Corners */
         .panel::before, .panel::after {
-            content: ''; position: absolute; width: 10px; height: 10px; border: 2px solid var(--tac-cyan);
+            content: ''; position: absolute; width: 8px; height: 8px; border: 2px solid var(--tac-cyan);
         }
         .panel::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
         .panel::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
 
-        /* Header Layout */
-        .top-bar {
+        .panel-header {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--tac-amber);
+            border-bottom: 1px dashed rgba(255, 170, 0, 0.3);
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
             display: flex;
             justify-content: space-between;
-            border-bottom: 1px solid var(--tac-cyan);
-            padding-bottom: 5px;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
         }
-        
-        .live-indicator {
+
+        /* Top Control Panel Layout */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .live-pulse {
             color: var(--tac-red);
-            animation: blink 1s infinite;
+            animation: beacon 1.2s infinite;
         }
+        @keyframes beacon { 0%, 100% { opacity: 1; text-shadow: 0 0 8px var(--tac-red); } 50% { opacity: 0.2; } }
 
-        @keyframes blink { 0%, 100% { opacity: 1; text-shadow: 0 0 10px var(--tac-red); } 50% { opacity: 0.3; } }
-
-        /* Middle Grid: Telemetry & Waterfall */
-        .mid-grid {
+        /* Multi-Column Workspace Matrix */
+        .theater-matrix {
             display: grid;
-            grid-template-columns: 1.5fr 1fr;
+            grid-template-columns: 1fr;
             gap: 10px;
-            flex-grow: 1;
-            min-height: 0;
+        }
+        @media (min-width: 992px) {
+            .theater-matrix { grid-template-columns: 1.2fr 1fr 1fr; }
         }
 
-        /* Packet Intercept Waterfall */
-        .waterfall-panel {
+        /* Component: Real-Time Dynamic SDR Spectrum Analyzer */
+        .spectrum-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 70px;
+            padding-top: 10px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+        }
+        .spectrum-bar {
+            width: 4%;
+            background: linear-gradient(to top, rgba(0, 229, 255, 0.1), var(--tac-cyan));
+            height: 20%;
+            transition: height 0.1s ease;
+        }
+
+        /* Component: Live Rolling Data Packet Stream */
+        .sigint-stream {
+            height: 180px;
+            overflow-y: hidden;
+            font-size: 0.7rem;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            font-size: 0.75rem;
-            color: #55aaff;
+            gap: 3px;
         }
-        .panel-header {
-            color: var(--tac-amber);
-            border-bottom: 1px dashed var(--tac-amber);
-            margin-bottom: 8px;
-            padding-bottom: 4px;
-            font-size: 0.85rem;
-        }
-        .log-stream {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            overflow: hidden;
-        }
-        .log-entry { display: flex; justify-content: space-between; }
-        .log-entry .hex { color: #fff; opacity: 0.7; }
-        
-        /* Node Status Panel */
-        .status-grid {
+        .stream-line { display: flex; justify-content: space-between; white-space: nowrap; }
+
+        /* Component: Global Node Infrastructure Cluster array */
+        .node-cluster {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            font-size: 0.8rem;
+            gap: 6px;
         }
-        .status-item {
-            background: rgba(0, 229, 255, 0.05);
-            padding: 8px;
-            border-left: 2px solid var(--tac-cyan);
+        .node-widget {
+            background: rgba(0, 229, 255, 0.03);
+            border: 1px solid rgba(0, 229, 255, 0.08);
+            padding: 6px;
+            font-size: 0.7rem;
         }
-        .status-label { font-size: 0.65rem; color: #88ddff; text-transform: uppercase; }
-        .status-value { font-weight: bold; margin-top: 3px; }
+        .node-name { color: #fff; font-weight: bold; }
+        .node-status { color: var(--tac-green); font-size: 0.65rem; margin-top: 2px; }
 
-        /* Targeting / Radar Box */
-        .radar-box {
-            margin-top: 10px;
-            height: 120px;
-            border: 1px solid var(--tac-cyan-dim);
+        /* Component: CSS Crosshair Scanning Arrays */
+        .radar-display {
+            height: 110px;
+            border: 1px solid rgba(0, 229, 255, 0.1);
             position: relative;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        .radar-line {
+        .radar-sweep {
             position: absolute;
-            width: 100%;
-            height: 2px;
-            background: var(--tac-cyan);
-            box-shadow: 0 0 10px var(--tac-cyan);
-            top: 0;
-            animation: scan 3s linear infinite;
+            width: 100%; height: 100%;
+            background: linear-gradient(rgba(0, 229, 255, 0.15), transparent);
+            top: -100%;
+            animation: sweep 4s linear infinite;
         }
-        .crosshair {
-            width: 50px; height: 50px;
-            border: 1px dashed rgba(0, 229, 255, 0.4);
+        @keyframes sweep { 0% { top: -100%; } 100% { top: 100%; } }
+        .reticle {
+            width: 60px; height: 60px;
+            border: 1px dashed rgba(0, 229, 255, 0.3);
             border-radius: 50%;
-            position: absolute;
+            position: relative;
         }
-        .crosshair::before, .crosshair::after {
-            content: ''; position: absolute; background: rgba(0, 229, 255, 0.4);
+        .reticle::before, .reticle::after {
+            content: ''; position: absolute; background: rgba(0, 229, 255, 0.3);
         }
-        .crosshair::before { top: 50%; left: -10px; right: -10px; height: 1px; }
-        .crosshair::after { left: 50%; top: -10px; bottom: -10px; width: 1px; }
-        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+        .reticle::before { top: 50%; left: -15px; right: -15px; height: 1px; }
+        .reticle::after { left: 50%; top: -15px; bottom: -15px; width: 1px; }
 
-        /* Defense Matrix Bottom Table */
-        .defense-matrix {
+        /* Hardened Security Infrastructure Reference Data Matrix */
+        .infra-grid {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
-            margin-top: auto;
+            font-size: 0.7rem;
+            margin-top: 5px;
         }
-        .defense-matrix th, .defense-matrix td {
-            border: 1px solid var(--tac-cyan-dim);
-            padding: 8px 12px;
+        .infra-grid th, .infra-grid td {
+            border: 1px solid rgba(0, 229, 255, 0.1);
+            padding: 6px 8px;
             text-align: left;
         }
-        .defense-matrix th { background: rgba(0, 229, 255, 0.1); color: var(--tac-cyan); }
-        .status-armed { color: var(--tac-cyan); text-shadow: 0 0 5px var(--tac-cyan); }
-        
-        .scramble-text { display: inline-block; min-width: 120px; }
+        .infra-grid th { background: rgba(0, 229, 255, 0.08); color: var(--tac-cyan); }
+        .secured-vector { color: var(--tac-green); font-weight: bold; text-shadow: 0 0 4px rgba(0, 255, 102, 0.3); }
 
-        @media (max-width: 768px) {
-            .mid-grid { grid-template-columns: 1fr; }
-            .waterfall-panel { height: 200px; }
-            .c2-container { height: 100vh; overflow-y: auto; }
-        }
+        .scramble { display: inline-block; }
     </style>
 </head>
 <body>
 
-<div class="c2-container">
+<div class="c2-shell">
     
     <div class="panel">
-        <div class="top-bar">
-            <span id="title-scramble">NEGARIX // JOINT_CYBER_CMD</span>
-            <span><span class="live-indicator">● REC</span> // ACTIVE</span>
+        <div class="header-bar">
+            <span id="core-banner">NEGARIX // GLOBAL_SIGINT_C2</span>
+            <span><span class="live-pulse">● COMMS_LINK</span> // SECURE</span>
         </div>
-        <div style="font-size: 0.75rem; margin-top: 5px; color: #88ddff;">
-            UP-LINK: <span id="uplink-ip">ESTABLISHING...</span> | SAT-POS: <span id="sat-pos">00.0000, 00.0000</span>
+        <div style="font-size: 0.65rem; margin-top: 6px; color: #7abccf; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px;">
+            <div>COORD: <span id="geo-telemetry">00.0000° N, 00.0000° E</span></div>
+            <div>SYS_EPOCH: <span id="sys-epoch">0000000000</span></div>
+            <div>AIR_GAP: <span style="color: var(--tac-green);">ISOLATED (CSP_ENFORCED)</span></div>
         </div>
     </div>
 
-    <div class="mid-grid">
+    <div class="theater-matrix">
         
-        <div class="panel waterfall-panel">
-            <div class="panel-header">📡 SIGINT: PACKET_INTERCEPT_STREAM</div>
-            <div class="log-stream" id="log-stream">
+        <div class="panel">
+            <div class="panel-header">
+                <span>📡 RF_SPECTRUM_RECEIVER (SDR)</span>
+                <span style="color: var(--tac-cyan);" id="freq-fhs">433.92 MHz</span>
+            </div>
+            
+            <div class="spectrum-container" id="spectrum-display">
+                </div>
+            
+            <div class="panel-header" style="margin-top: 12px; border-bottom: 1px dashed rgba(255,38,38,0.2); color: var(--tac-red);">
+                <span>⚠️ BROADCAST_INTERCEPT_STREAM</span>
+            </div>
+            <div class="sigint-stream" id="packet-stream">
                 </div>
         </div>
 
         <div class="panel">
-            <div class="panel-header">⚙️ NODE_TELEMETRY</div>
-            <div class="status-grid">
-                <div class="status-item">
-                    <div class="status-label">Encryption Key</div>
-                    <div class="status-value scramble-text" id="enc-key">AWAITING...</div>
+            <div class="panel-header">🌐 GLOBAL_INFRASTRUCTURE_NODES</div>
+            <div class="node-cluster">
+                <div class="node-widget">
+                    <div class="node-name">LOND-NODE-01</div>
+                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
                 </div>
-                <div class="status-item">
-                    <div class="status-label">Threat Level</div>
-                    <div class="status-value" style="color: var(--tac-cyan);">ELEVATED / SECURE</div>
+                <div class="node-widget">
+                    <div class="node-name">WASH-NODE-04</div>
+                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
                 </div>
-                <div class="status-item">
-                    <div class="status-label">Network Ping</div>
-                    <div class="status-value" id="ping-val">12ms</div>
+                <div class="node-widget">
+                    <div class="node-name">TOKY-NODE-09</div>
+                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
                 </div>
-                <div class="status-item">
-                    <div class="status-label">Drop Rate</div>
-                    <div class="status-value" id="drop-rate">0.00%</div>
+                <div class="node-widget">
+                    <div class="node-name">SYDN-NODE-02</div>
+                    <div class="node-status">CIPHER: <span class="scramble">AWAITING</span></div>
                 </div>
             </div>
 
-            <div class="radar-box">
-                <div class="radar-line"></div>
-                <div class="crosshair"></div>
-                <div style="position: absolute; bottom: 5px; right: 5px; font-size: 0.6rem; opacity: 0.5;">
-                    FOV: 120° / BAND: X
+            <div class="panel-header" style="margin-top: 12px;">🎯 PASSIVE_SCANNER_TARGETING</div>
+            <div class="radar-display">
+                <div class="radar-sweep"></div>
+                <div class="reticle"></div>
+                <div style="position: absolute; top: 4px; left: 6px; font-size: 0.55rem; color: rgba(0, 229, 255, 0.4);">
+                    AZIMUTH: <span id="radar-azi">312°</span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="panel">
-        <div class="panel-header">🛡️ DOMAIN ARCHITECTURE [ ZERO-TRUST ]</div>
-        <table class="defense-matrix">
-            <thead>
-                <tr>
-                    <th>DEFENSE LAYER</th>
-                    <th>PROTOCOL</th>
-                    <th>STATE</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>TRANSPORT LAYER SECURITY</td>
-                    <td>MTA-STS (STRICT ENFORCE)</td>
-                    <td class="status-armed">[ BOUND ]</td>
-                </tr>
-                <tr>
-                    <td>CRYPTOGRAPHIC SIGNATURE</td>
-                    <td>DKIM (RSA-2048/ED25519)</td>
-                    <td class="status-armed">[ VALIDATED ]</td>
-                </tr>
-                <tr>
-                    <td>IDENTITY SPOOF MITIGATION</td>
-                    <td>SPF / DMARC (p=quarantine)</td>
-                    <td class="status-armed">[ ENFORCED ]</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        <div class="panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div class="panel-header">🛡️ ZERO-TRUST_PERIMETER_ENFORCEMENT</div>
+                <table class="infra-grid">
+                    <thead>
+                        <tr>
+                            <th>DEFENSE VECTOR</th>
+                            <th>PROTOCOL ARCHITECTURE</th>
+                            <th>STATE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>TRANSPORT MATRIX</td>
+                            <td>MTA-STS / TLS 1.3 STRICT</td>
+                            <td class="secured-vector">[ ENFORCE ]</td>
+                        </tr>
+                        <tr>
+                            <td>CRYPTOGRAPHIC CORE</td>
+                            <td>DKIM KEYSETS (RSA-2048)</td>
+                            <td class="secured-vector">[ ALIGNED ]</td>
+                        </tr>
+                        <tr>
+                            <td>SPOOF ISOLATION</td>
+                            <td>SPF + DMARC POLICIES</td>
+                            <td class="secured-vector">[ ISOLATED ]</td>
+                        </tr>
+                        <tr>
+                            <td>ISSUANCE CONTROL</td>
+                            <td>CAA ANTI-WILDCARD GUARD</td>
+                            <td class="secured-vector">[ ANCHORED ]</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="font-size: 0.58rem; line-height: 1.3; color: rgba(0, 229, 255, 0.4); border-top: 1px solid rgba(0, 229, 255, 0.1); padding-top: 8px; margin-top: 15px;">
+                DECRYPTION SYSTEM STATUS: INTEGRATED ENGINE RUNNING EXTENDED ASYMMETRIC SEEDS. ZERO PACKET ESCAPE VALUE DETECTED. AUTHORIZED TELEMETRY TERMINALS ONLY.
+            </div>
+        </div>
 
+    </div>
 </div>
 
 <script>
-    // --- HELPER FUNCTIONS ---
     const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
     const randHex = (len) => [...Array(len)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
-    const randIP = () => `${randInt(10,255)}.${randInt(1,255)}.${randInt(1,255)}.${randInt(1,255)}`;
-    
-    // --- SCRAMBLE / DECRYPTION EFFECT ---
-    class Scrambler {
-        constructor(element, targetText, chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*') {
-            this.element = element;
-            this.targetText = targetText;
-            this.chars = chars;
-            this.scramble();
+    const randIP = () => `${randInt(10,240)}.${randInt(1,254)}.${randInt(0,254)}.${randInt(1,254)}`;
+
+    // --- CYBER REALISM DECRYPTION SCRAMBLER CLASS ENGINE ---
+    class CrypticScrambler {
+        constructor(el, finalStr, speed = 25) {
+            this.el = el;
+            this.finalStr = finalStr;
+            this.speed = speed;
+            this.pool = "X01_ØΞΩΨ★☣☠⚡⚙#@&%";
+            this.execute();
         }
-        scramble() {
+        execute() {
             let iteration = 0;
-            const interval = setInterval(() => {
-                this.element.innerText = this.targetText.split('').map((char, index) => {
-                    if (index < iteration) return this.targetText[index];
-                    return this.chars[Math.floor(Math.random() * this.chars.length)];
+            clearInterval(this.interval);
+            this.interval = setInterval(() => {
+                this.el.innerText = this.finalStr.split('').map((char, index) => {
+                    if (index < iteration) return this.finalStr[index];
+                    return this.pool[Math.floor(Math.random() * this.pool.length)];
                 }).join('');
-                if (iteration >= this.targetText.length) clearInterval(interval);
-                iteration += 1 / 3; 
-            }, 30);
+                if (iteration >= this.finalStr.length) clearInterval(this.interval);
+                iteration += 1 / 2;
+            }, this.speed);
         }
     }
 
-    // Initialize initial scrambles
-    setTimeout(() => new Scrambler(document.getElementById('title-scramble'), 'NEGARIX // JOINT_CYBER_CMD'), 500);
-    setInterval(() => new Scrambler(document.getElementById('enc-key'), `RSA-${randHex(8)}`), 4000);
-
-    // --- TELEMETRY UPDATES ---
-    setInterval(() => {
-        document.getElementById('ping-val').innerText = `${randInt(8, 24)}ms`;
-        document.getElementById('drop-rate').innerText = `0.0${randInt(0, 5)}%`;
-        document.getElementById('sat-pos').innerText = `${(randInt(-900000, 900000)/10000).toFixed(4)}, ${(randInt(-1800000, 1800000)/10000).toFixed(4)}`;
-        if(Math.random() > 0.8) document.getElementById('uplink-ip').innerText = randIP();
-    }, 1000);
-
-    // --- PACKET WATERFALL STREAM ---
-    const streamContainer = document.getElementById('log-stream');
-    const actions = ["DECRYPT", "DROP_PKT", "REROUTE", "HANDSHAKE", "INSPECT"];
+    // Initialize global decrypt loops
+    setTimeout(() => new CrypticScrambler(document.getElementById('core-banner'), 'NEGARIX // GLOBAL_SIGINT_C2', 40), 300);
     
-    function addLog() {
-        if (streamContainer.children.length > 15) {
-            streamContainer.removeChild(streamContainer.lastChild);
-        }
+    function scrambleNodeCiphers() {
+        document.querySelectorAll('.scramble').forEach(el => {
+            new CrypticScrambler(el, `0x${randHex(4)}`, 50);
+        });
+    }
+    setInterval(scrambleNodeCiphers, 5000);
+    scrambleNodeCiphers();
+
+    // --- REALTIME AUTOMATED SDR SPECTROGRAM CORE ---
+    const specContainer = document.getElementById('spectrum-display');
+    const totalBars = 22;
+    const barElements = [];
+    
+    for(let i=0; i<totalBars; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'spectrum-bar';
+        specContainer.appendChild(bar);
+        barElements.push(bar);
+    }
+
+    setInterval(() => {
+        barElements.forEach(bar => {
+            const dynamicHeight = randInt(15, 95);
+            bar.style.height = `${dynamicHeight}%`;
+        });
+        document.getElementById('freq-fhs').innerText = `${(433.920 + (Math.random() * 2 - 1) * 0.15).toFixed(3)} MHz`;
+    }, 120);
+
+    // --- SIGINT CAPTURE STREAM ENGINE ---
+    const logContainer = document.getElementById('packet-stream');
+    const actions = ["SIG_CAP", "REROUTE", "DEC_FAIL", "AUTH_OK", "DROP_MAL", "BEACON"];
+    
+    function injectSigintLog() {
+        if (logContainer.children.length > 12) logContainer.removeChild(logContainer.lastChild);
+        
         const action = actions[randInt(0, actions.length - 1)];
-        const color = action === "DROP_PKT" ? "var(--tac-red)" : (action === "DECRYPT" ? "var(--tac-amber)" : "#55aaff");
+        let opColor = "var(--tac-cyan)";
+        if(action === "DROP_MAL" || action === "DEC_FAIL") opColor = "var(--tac-red)";
+        if(action === "AUTH_OK") opColor = "var(--tac-green)";
         
         const entry = document.createElement('div');
-        entry.className = 'log-entry';
+        entry.className = 'stream-line';
         entry.innerHTML = `
-            <span><span style="color:${color}">[${action}]</span> SRC:${randIP()}</span>
-            <span class="hex">0x${randHex(6)}</span>
+            <span><span style="color:${opColor}">[${action}]</span> NTWRK:${randIP()}</span>
+            <span style="opacity:0.5;">0x${randHex(4)}</span>
         `;
-        streamContainer.insertBefore(entry, streamContainer.firstChild);
+        logContainer.insertBefore(entry, logContainer.firstChild);
     }
-    
-    // Fire logs rapidly to simulate network traffic
-    setInterval(addLog, 250);
+    setInterval(injectSigintLog, 350);
+
+    // --- PERPETUAL SYSTEM TELEMETRY COUNTERS ---
+    setInterval(() => {
+        document.getElementById('sys-epoch').innerText = Math.floor(Date.now() / 1000);
+        document.getElementById('radar-azi').innerText = `${randInt(0, 359)}°`;
+        document.getElementById('geo-telemetry').innerText = 
+            `${(51.5074 + (Math.random() * 2 - 1) * 0.05).toFixed(4)}° N, ${(0.1278 - (Math.random() * 2 - 1) * 0.05).toFixed(4)}° E`;
+    }, 1000);
 </script>
 
 </body>
