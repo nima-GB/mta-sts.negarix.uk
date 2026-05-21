@@ -89,27 +89,33 @@
 
     <script>
         async function verify() {
+            console.log("DEBUG: Initiation signal received.");
             const input = document.getElementById('key').value;
             const term = document.getElementById('terminal');
             const btn = document.getElementById('auth-btn');
 
-            // Hardening: Disable button during transmission
             btn.disabled = true;
             btn.textContent = "HANDSHAKING...";
 
             try {
+                console.log("DEBUG: Fetching /api/login...");
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key: input })
                 });
 
+                console.log("DEBUG: Response Status:", response.status);
+
                 const data = await response.json();
+                console.log("DEBUG: Server Data:", data);
 
                 if (data.authorized) {
+                    console.log("DEBUG: Access Granted. Redirecting...");
                     sessionStorage.setItem('sec_clearance', 'GRANTED');
                     window.location.href = "c2-ops.html";
                 } else {
+                    console.warn("DEBUG: Access Denied by Server.");
                     term.classList.add('glitch-flash');
                     setTimeout(() => {
                         term.classList.remove('glitch-flash');
@@ -118,7 +124,7 @@
                     }, 500);
                 }
             } catch (err) {
-                console.error("Connection failed");
+                console.error("DEBUG: FETCH FAILED. Check network connection or API route.", err);
                 btn.disabled = false;
                 btn.textContent = "ESTABLISH_HANDSHAKE";
             }
