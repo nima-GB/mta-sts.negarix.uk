@@ -1,25 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <title>NEGARIX // AUTH_GATE</title>
     <style>
-        body { background: #010408; color: #00e5ff; font-family: 'Courier New', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .gate { border: 1px solid #00e5ff; padding: 40px; text-align: center; }
-        input { background: transparent; border: 1px solid #00e5ff; color: #fff; padding: 10px; width: 200px; }
-        button { background: #00e5ff; border: none; padding: 10px 20px; cursor: pointer; }
+        /* Base styles */
+        body { background: #010408; color: #00e5ff; font-family: 'Courier New', monospace; margin: 0; }
+        #gatekeeper { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #c2-interface { display: none; } /* HIDDEN BY DEFAULT */
+        
+        /* Gatekeeper CSS */
+        .terminal { border: 1px solid #00e5ff; padding: 40px; text-align: center; width: 300px; }
+        input { background: transparent; border: 1px solid #00e5ff; color: #fff; padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 20px; }
+        button { background: #00e5ff; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; width: 100%; }
     </style>
 </head>
 <body>
-    <div class="gate">
-        <h1>NEGARIX // ACCESS_CONTROL</h1>
-        <p>ENTER CLEARANCE KEY TO PROCEED TO SECURE NODE</p>
-        <input type="password" id="key" placeholder="KEY_VECTOR">
-        <button onclick="check()">INITIATE</button>
+
+    <div id="gatekeeper">
+        <div class="terminal">
+            <h3>SECURE_NODE_ALPHA</h3>
+            <p style="font-size: 0.7rem; margin-bottom: 20px;">[ AWAITING_HANDSHAKE ]</p>
+            <input type="password" id="clearance-key" placeholder="INPUT_KEY_VECTOR...">
+            <button onclick="verify()">INITIATE_HANDSHAKE</button>
+        </div>
     </div>
+
+    <div id="c2-interface">
+        <h1>C2 HUD ACTIVE</h1>
+        <p>Access Granted.</p>
+    </div>
+
     <script>
-        function check() {
-            if(document.getElementById('key').value === "ALPHA") window.location.href = "c2-ops.html";
-            else alert("ACCESS DENIED: SECURITY ALERT LOGGED");
+        // Use a simple hash for the key to avoid plaintext in the code
+        // "ALPHA-9" base64 encoded
+        const MASTER_KEY = "QUxQSEEtOQ=="; 
+
+        function verify() {
+            const input = document.getElementById('clearance-key').value;
+            const encodedInput = btoa(input); // Encode input to check against master
+            
+            if(encodedInput === MASTER_KEY) {
+                document.getElementById('gatekeeper').style.display = 'none';
+                document.getElementById('c2-interface').style.display = 'block';
+                sessionStorage.setItem('access', 'granted');
+            } else {
+                alert("ACCESS DENIED: MALICIOUS_HANDSHAKE_DETECTED");
+            }
         }
+
+        // Persistent check: If they somehow got here, keep it locked
+        window.onload = () => {
+            if(sessionStorage.getItem('access') === 'granted') {
+                document.getElementById('gatekeeper').style.display = 'none';
+                document.getElementById('c2-interface').style.display = 'block';
+            }
+        };
     </script>
 </body>
 </html>
