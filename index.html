@@ -2,60 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEGARIX // AUTH_GATE</title>
     <style>
-        /* Base styles */
-        body { background: #010408; color: #00e5ff; font-family: 'Courier New', monospace; margin: 0; }
-        #gatekeeper { display: flex; justify-content: center; align-items: center; height: 100vh; }
-        #c2-interface { display: none; } /* HIDDEN BY DEFAULT */
+        :root {
+            --tac-cyan: #00e5ff;
+            --tac-red: #ff3838;
+            --bg-deep: #010408;
+        }
+        body { 
+            background: var(--bg-deep); 
+            color: var(--tac-cyan); 
+            font-family: 'Courier New', monospace; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0;
+            overflow: hidden;
+        }
         
-        /* Gatekeeper CSS */
-        .terminal { border: 1px solid #00e5ff; padding: 40px; text-align: center; width: 300px; }
-        input { background: transparent; border: 1px solid #00e5ff; color: #fff; padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 20px; }
-        button { background: #00e5ff; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; width: 100%; }
+        #gatekeeper { 
+            border: 1px solid var(--tac-cyan); 
+            padding: 40px; 
+            text-align: center; 
+            width: 320px; 
+            background: rgba(1, 4, 8, 0.9);
+            transition: all 0.1s ease;
+        }
+
+        /* Glitch/Intrusion State */
+        .intrusion-alert {
+            animation: shake 0.2s linear infinite;
+            border-color: var(--tac-red) !important;
+            color: var(--tac-red) !important;
+            box-shadow: 0 0 15px var(--tac-red) !important;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        input { 
+            background: transparent; 
+            border: 1px solid var(--tac-cyan); 
+            color: #fff; 
+            padding: 12px; 
+            width: 100%; 
+            box-sizing: border-box; 
+            margin-bottom: 20px; 
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        
+        button { 
+            background: var(--tac-cyan); 
+            color: #000; 
+            border: none; 
+            padding: 12px 20px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            width: 100%; 
+            text-transform: uppercase;
+        }
+        
+        button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
     <div id="gatekeeper">
-        <div class="terminal">
-            <h3>SECURE_NODE_ALPHA</h3>
-            <p style="font-size: 0.7rem; margin-bottom: 20px;">[ AWAITING_HANDSHAKE ]</p>
-            <input type="password" id="clearance-key" placeholder="INPUT_KEY_VECTOR...">
-            <button onclick="verify()">INITIATE_HANDSHAKE</button>
-        </div>
-    </div>
-
-    <div id="c2-interface">
-        <h1>C2 HUD ACTIVE</h1>
-        <p>Access Granted.</p>
+        <h3>SECURE_NODE_ALPHA</h3>
+        <p style="font-size: 0.7rem; margin-bottom: 20px;">[ AWAITING_HANDSHAKE ]</p>
+        <input type="password" id="clearance-key" placeholder="INPUT_KEY_VECTOR..." autocomplete="off">
+        <button onclick="verify()">INITIATE_HANDSHAKE</button>
     </div>
 
     <script>
-        // Use a simple hash for the key to avoid plaintext in the code
-        // "ALPHA-9" base64 encoded
-        const MASTER_KEY = "QUxQSEEtOQ=="; 
+        // CONFIG: Replace 'ALPHA-9' with your desired key
+        const VALID_KEY = "ALPHA-9";
 
         function verify() {
             const input = document.getElementById('clearance-key').value;
-            const encodedInput = btoa(input); // Encode input to check against master
-            
-            if(encodedInput === MASTER_KEY) {
-                document.getElementById('gatekeeper').style.display = 'none';
-                document.getElementById('c2-interface').style.display = 'block';
-                sessionStorage.setItem('access', 'granted');
+            const gate = document.getElementById('gatekeeper');
+
+            if(input === VALID_KEY) {
+                // ISSUE PASSPORT
+                sessionStorage.setItem('sec_clearance', 'GRANTED'); 
+                // REDIRECT TO HUD
+                window.location.href = "c2-ops.html";
             } else {
-                alert("ACCESS DENIED: MALICIOUS_HANDSHAKE_DETECTED");
+                // TRIGGER INTRUSION ALERT
+                gate.classList.add('intrusion-alert');
+                
+                // Reset after 500ms
+                setTimeout(() => {
+                    gate.classList.remove('intrusion-alert');
+                }, 500);
+                
+                console.warn("UNAUTHORIZED_ACCESS_ATTEMPT_LOGGED");
+                document.getElementById('clearance-key').value = ''; // Clear input
             }
         }
-
-        // Persistent check: If they somehow got here, keep it locked
-        window.onload = () => {
-            if(sessionStorage.getItem('access') === 'granted') {
-                document.getElementById('gatekeeper').style.display = 'none';
-                document.getElementById('c2-interface').style.display = 'block';
-            }
-        };
     </script>
 </body>
 </html>
