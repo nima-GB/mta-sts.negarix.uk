@@ -5,292 +5,344 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none';">
-    <title>NEGARIX // COMS-NODE-01</title>
+    <title>NEGARIX // SIGINT-C2</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
         :root {
-            --matrix-green: #00ff66;
-            --cyber-dark: #050806;
-            --hud-bg: rgba(0, 30, 15, 0.6);
-            --border-glow: #005522;
-            --panel-bg: rgba(0, 15, 5, 0.5);
+            --tac-cyan: #00e5ff;
+            --tac-cyan-dim: rgba(0, 229, 255, 0.2);
+            --tac-amber: #ffaa00;
+            --tac-red: #ff3333;
+            --bg-deep: #02060a;
+            --panel-bg: rgba(2, 12, 20, 0.7);
+            --grid-line: rgba(0, 229, 255, 0.08);
         }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
-            background-color: var(--cyber-dark);
-            color: var(--matrix-green);
-            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-deep);
+            color: var(--tac-cyan);
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            padding: 20px;
-            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 6px 100%;
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 30px 30px;
         }
-        .hud-container {
-            width: 100%;
-            max-width: 750px;
-            background: var(--hud-bg);
-            border: 1px solid var(--matrix-green);
-            box-shadow: 0 0 20px var(--border-glow);
-            padding: 25px;
-            position: relative;
-        }
-        .hud-container::before, .hud-container::after {
-            content: '';
-            position: absolute;
-            width: 15px;
-            height: 15px;
-            border: 2px solid var(--matrix-green);
-        }
-        .hud-container::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
-        .hud-container::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
 
-        .header {
-            border-bottom: 1px solid var(--matrix-green);
-            padding-bottom: 12px;
-            margin-bottom: 15px;
+        /* CRT Screen Overlay & Scanlines */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 100;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .c2-container {
+            width: 100%;
+            max-width: 900px;
+            height: 95vh;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* High-End Targeting Borders */
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--tac-cyan-dim);
+            position: relative;
+            padding: 15px;
+            backdrop-filter: blur(4px);
+        }
+        .panel::before, .panel::after {
+            content: ''; position: absolute; width: 10px; height: 10px; border: 2px solid var(--tac-cyan);
+        }
+        .panel::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+        .panel::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+        /* Header Layout */
+        .top-bar {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            font-size: 1.1rem;
+            border-bottom: 1px solid var(--tac-cyan);
+            padding-bottom: 5px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
             letter-spacing: 2px;
         }
-        .status-pulse {
-            width: 10px;
-            height: 10px;
-            background-color: var(--matrix-green);
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 8px var(--matrix-green);
-            animation: pulse 1.5s infinite;
+        
+        .live-indicator {
+            color: var(--tac-red);
+            animation: blink 1s infinite;
         }
-        @keyframes pulse {
-            0% { opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; text-shadow: 0 0 10px var(--tac-red); } 50% { opacity: 0.3; } }
+
+        /* Middle Grid: Telemetry & Waterfall */
+        .mid-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 10px;
+            flex-grow: 1;
+            min-height: 0;
         }
-        .terminal-log {
+
+        /* Packet Intercept Waterfall */
+        .waterfall-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 0.75rem;
+            color: #55aaff;
+        }
+        .panel-header {
+            color: var(--tac-amber);
+            border-bottom: 1px dashed var(--tac-amber);
+            margin-bottom: 8px;
+            padding-bottom: 4px;
             font-size: 0.85rem;
-            line-height: 1.4;
-            margin-bottom: 15px;
+        }
+        .log-stream {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow: hidden;
+        }
+        .log-entry { display: flex; justify-content: space-between; }
+        .log-entry .hex { color: #fff; opacity: 0.7; }
+        
+        /* Node Status Panel */
+        .status-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 5px;
-        }
-        .log-line { display: flex; }
-        .log-line .label { width: 110px; color: #00aa44; }
-        .log-line .value { color: var(--matrix-green); }
-
-        /* --- ELECTRONIC WARFARE HUD COMPONENT --- */
-        .ew-array-panel {
-            border: 1px dashed rgba(0, 255, 102, 0.5);
-            background: var(--panel-bg);
-            padding: 12px;
-            margin-bottom: 15px;
-        }
-        .ew-title {
+            gap: 8px;
             font-size: 0.8rem;
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            color: var(--matrix-green);
-            text-shadow: 0 0 5px rgba(0, 255, 102, 0.4);
         }
-        .ew-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 10px;
+        .status-item {
+            background: rgba(0, 229, 255, 0.05);
+            padding: 8px;
+            border-left: 2px solid var(--tac-cyan);
         }
-        .ew-card {
-            background: rgba(0, 45, 20, 0.2);
-            border: 1px solid rgba(0, 255, 102, 0.2);
-            padding: 6px;
-            text-align: center;
-        }
-        .ew-label {
-            font-size: 0.65rem;
-            color: #00aa44;
-            margin-bottom: 2px;
-            text-transform: uppercase;
-        }
-        .ew-value {
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: var(--matrix-green);
-        }
-        .radar-sweep-container {
-            background: #010402;
-            border: 1px solid rgba(0, 255, 102, 0.25);
-            padding: 6px;
+        .status-label { font-size: 0.65rem; color: #88ddff; text-transform: uppercase; }
+        .status-value { font-weight: bold; margin-top: 3px; }
+
+        /* Targeting / Radar Box */
+        .radar-box {
+            margin-top: 10px;
+            height: 120px;
+            border: 1px solid var(--tac-cyan-dim);
             position: relative;
             overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            font-size: 0.75rem;
-            color: var(--matrix-green);
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .radar-bar {
+        .radar-line {
             position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--tac-cyan);
+            box-shadow: 0 0 10px var(--tac-cyan);
             top: 0;
-            left: -100%;
-            width: 35%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 102, 0.25), transparent);
-            animation: sweep 2.5s linear infinite;
+            animation: scan 3s linear infinite;
         }
-        @keyframes sweep {
-            0% { left: -35%; }
-            100% { left: 100%; }
+        .crosshair {
+            width: 50px; height: 50px;
+            border: 1px dashed rgba(0, 229, 255, 0.4);
+            border-radius: 50%;
+            position: absolute;
         }
-        /* ---------------------------------------- */
+        .crosshair::before, .crosshair::after {
+            content: ''; position: absolute; background: rgba(0, 229, 255, 0.4);
+        }
+        .crosshair::before { top: 50%; left: -10px; right: -10px; height: 1px; }
+        .crosshair::after { left: 50%; top: -10px; bottom: -10px; width: 1px; }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
 
-        .matrix-table {
+        /* Defense Matrix Bottom Table */
+        .defense-matrix {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            margin-top: auto;
         }
-        .matrix-table th, .matrix-table td {
-            border: 1px solid rgba(0, 255, 102, 0.2);
-            padding: 6px 10px;
+        .defense-matrix th, .defense-matrix td {
+            border: 1px solid var(--tac-cyan-dim);
+            padding: 8px 12px;
             text-align: left;
         }
-        .matrix-table th {
-            background: rgba(0, 255, 102, 0.1);
-            color: #00aa44;
-        }
-        .secured-tag {
-            color: #00ff00;
-            font-weight: bold;
-        }
-        .footer-warning {
-            border-top: 1px dashed var(--matrix-green);
-            padding-top: 10px;
-            margin-top: 15px;
-            font-size: 0.7rem;
-            text-align: center;
-            color: #ff3333;
-            letter-spacing: 1px;
-            text-shadow: 0 0 5px rgba(255, 51, 51, 0.4);
+        .defense-matrix th { background: rgba(0, 229, 255, 0.1); color: var(--tac-cyan); }
+        .status-armed { color: var(--tac-cyan); text-shadow: 0 0 5px var(--tac-cyan); }
+        
+        .scramble-text { display: inline-block; min-width: 120px; }
+
+        @media (max-width: 768px) {
+            .mid-grid { grid-template-columns: 1fr; }
+            .waterfall-panel { height: 200px; }
+            .c2-container { height: 100vh; overflow-y: auto; }
         }
     </style>
 </head>
 <body>
 
-<div class="hud-container">
-    <div class="header">
-        <div>// NEGARIX_NET // SECURE_NODE_ALPHA</div>
-        <div>SYS_ACTIVE <span class="status-pulse"></span></div>
-    </div>
-
-    <div class="terminal-log">
-        <div class="log-line"><span class="label">[ DOMAIN ]</span><span class="value">negarix.uk</span></div>
-        <div class="log-line"><span class="label">[ INTERFACE ]</span><span class="value">mta-sts.negarix.uk</span></div>
-        <div class="log-line"><span class="label">[ PROTOCOL ]</span><span class="value">MTA-STS ENFORCED</span></div>
-        <div class="log-line"><span class="label">[ MATRIX ]</span><span class="value">ZERO-TRUST ACTIVE</span></div>
-    </div>
-
-    <div class="ew-array-panel">
-        <div class="ew-title">📡 SIGINT_TACTICAL_MONITOR // FREQ_HOPPING_LOOP</div>
-        <div class="ew-grid">
-            <div class="ew-card">
-                <div class="ew-label">Vector Core Hash</div>
-                <div class="ew-value" id="ew-hash">0x000000</div>
-            </div>
-            <div class="ew-card">
-                <div class="ew-label">RF Spectrum Hopping</div>
-                <div class="ew-value" id="ew-freq">433.920 MHz</div>
-            </div>
-            <div class="ew-card">
-                <div class="ew-label">Signal Floor Ratio</div>
-                <div class="ew-value" id="ew-snr">-92.4 dBm</div>
-            </div>
+<div class="c2-container">
+    
+    <div class="panel">
+        <div class="top-bar">
+            <span id="title-scramble">NEGARIX // JOINT_CYBER_CMD</span>
+            <span><span class="live-indicator">● REC</span> // ACTIVE</span>
         </div>
-        <div class="radar-sweep-container">
-            <div class="radar-bar"></div>
-            🔬 INTERCEPT LOG: <span id="ew-log">SYS_INIT // STANDING BY FOR RECON PATTERNS...</span>
+        <div style="font-size: 0.75rem; margin-top: 5px; color: #88ddff;">
+            UP-LINK: <span id="uplink-ip">ESTABLISHING...</span> | SAT-POS: <span id="sat-pos">00.0000, 00.0000</span>
         </div>
     </div>
 
-    <table class="matrix-table">
-        <thead>
-            <tr>
-                <th>DEFENSE VECTOR</th>
-                <th>PROTOCOL FRAMEWORK</th>
-                <th>STATUS</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>TRANSPORT PROTECT</td>
-                <td>MTA-STS (ENFORCE STYLE)</td>
-                <td class="secured-tag">[ ARMED ]</td>
-            </tr>
-            <tr>
-                <td>CRYPTOGRAPHIC SIGN</td>
-                <td>DKIM / DNSSEC PERIMETER</td>
-                <td class="secured-tag">[ SIGNED ]</td>
-            </tr>
-            <tr>
-                <td>SPOOF MITIGATION</td>
-                <td>SPF / DMARC QUARANTINE</td>
-                <td class="secured-tag">[ LOCKED ]</td>
-            </tr>
-            <tr>
-                <td>HIJACK GUARD</td>
-                <td>CAA ANTI-WILDCARD DIRECTIVE</td>
-                <td class="secured-tag">[ BLOCKED ]</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="mid-grid">
+        
+        <div class="panel waterfall-panel">
+            <div class="panel-header">📡 SIGINT: PACKET_INTERCEPT_STREAM</div>
+            <div class="log-stream" id="log-stream">
+                </div>
+        </div>
 
-    <div class="footer-warning">
-        WARNING: UN-AUTHORIZED HANDSHAKES ARE MECHANICALLY TERMINATED. MALFORMED SESSIONS DISCARDED.
+        <div class="panel">
+            <div class="panel-header">⚙️ NODE_TELEMETRY</div>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">Encryption Key</div>
+                    <div class="status-value scramble-text" id="enc-key">AWAITING...</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Threat Level</div>
+                    <div class="status-value" style="color: var(--tac-cyan);">ELEVATED / SECURE</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Network Ping</div>
+                    <div class="status-value" id="ping-val">12ms</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Drop Rate</div>
+                    <div class="status-value" id="drop-rate">0.00%</div>
+                </div>
+            </div>
+
+            <div class="radar-box">
+                <div class="radar-line"></div>
+                <div class="crosshair"></div>
+                <div style="position: absolute; bottom: 5px; right: 5px; font-size: 0.6rem; opacity: 0.5;">
+                    FOV: 120° / BAND: X
+                </div>
+            </div>
+        </div>
     </div>
+
+    <div class="panel">
+        <div class="panel-header">🛡️ DOMAIN ARCHITECTURE [ ZERO-TRUST ]</div>
+        <table class="defense-matrix">
+            <thead>
+                <tr>
+                    <th>DEFENSE LAYER</th>
+                    <th>PROTOCOL</th>
+                    <th>STATE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TRANSPORT LAYER SECURITY</td>
+                    <td>MTA-STS (STRICT ENFORCE)</td>
+                    <td class="status-armed">[ BOUND ]</td>
+                </tr>
+                <tr>
+                    <td>CRYPTOGRAPHIC SIGNATURE</td>
+                    <td>DKIM (RSA-2048/ED25519)</td>
+                    <td class="status-armed">[ VALIDATED ]</td>
+                </tr>
+                <tr>
+                    <td>IDENTITY SPOOF MITIGATION</td>
+                    <td>SPF / DMARC (p=quarantine)</td>
+                    <td class="status-armed">[ ENFORCED ]</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
 </div>
 
 <script>
-    const hashDisplay = document.getElementById('ew-hash');
-    const freqDisplay = document.getElementById('ew-freq');
-    const snrDisplay = document.getElementById('ew-snr');
-    const logDisplay = document.getElementById('ew-log');
-
-    const tacticalPhrases = [
-        "MTA_SHIELD: Connection handshake bound to strict TLS 1.3 encryption.",
-        "SIGINT: Noise floor convergence stabilized. Scanner looping.",
-        "DMARC_ENG: Intercepted spoof signature vector -- malformed block dropped.",
-        "PERIMETER: CAA entry validated. Unauthorized issuance vector un-routable.",
-        "Z-TRUST: Continuous identity evaluation active. Zero leaks recorded.",
-        "CIPHER_MATRIX: Regenerating pseudo-random ephemeral routing seeds.",
-        "SEC_ALPHA: Port probing attempts discarded with absolute telemetry silence."
-    ];
-
-    setInterval(() => {
-        // 1. Rapidly rotate cryptographic hexadecimal memory addresses
-        const dynamicHex = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase().padStart(6, '0');
-        hashDisplay.textContent = dynamicHex;
-
-        // 2. Simulate rapid Frequency Hopping Spread Spectrum tracking
-        const dynamicFreq = (433.920 + (Math.random() * 2 - 1) * 0.07).toFixed(3);
-        freqDisplay.textContent = dynamicFreq + " MHz";
-
-        // 3. Modulate Signal-to-Noise Floor metrics
-        const dynamicSNR = (91.5 + Math.random() * 6.5).toFixed(1);
-        snrDisplay.textContent = "-" + dynamicSNR + " dBm";
-        
-        // 4. Periodically dump active defense actions to intercept scanner log
-        if(Math.random() > 0.88) {
-            const selectedPhrase = tacticalPhrases[Math.floor(Math.random() * tacticalPhrases.length)];
-            logDisplay.textContent = selectedPhrase;
+    // --- HELPER FUNCTIONS ---
+    const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const randHex = (len) => [...Array(len)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+    const randIP = () => `${randInt(10,255)}.${randInt(1,255)}.${randInt(1,255)}.${randInt(1,255)}`;
+    
+    // --- SCRAMBLE / DECRYPTION EFFECT ---
+    class Scrambler {
+        constructor(element, targetText, chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*') {
+            this.element = element;
+            this.targetText = targetText;
+            this.chars = chars;
+            this.scramble();
         }
-    }, 280);
+        scramble() {
+            let iteration = 0;
+            const interval = setInterval(() => {
+                this.element.innerText = this.targetText.split('').map((char, index) => {
+                    if (index < iteration) return this.targetText[index];
+                    return this.chars[Math.floor(Math.random() * this.chars.length)];
+                }).join('');
+                if (iteration >= this.targetText.length) clearInterval(interval);
+                iteration += 1 / 3; 
+            }, 30);
+        }
+    }
+
+    // Initialize initial scrambles
+    setTimeout(() => new Scrambler(document.getElementById('title-scramble'), 'NEGARIX // JOINT_CYBER_CMD'), 500);
+    setInterval(() => new Scrambler(document.getElementById('enc-key'), `RSA-${randHex(8)}`), 4000);
+
+    // --- TELEMETRY UPDATES ---
+    setInterval(() => {
+        document.getElementById('ping-val').innerText = `${randInt(8, 24)}ms`;
+        document.getElementById('drop-rate').innerText = `0.0${randInt(0, 5)}%`;
+        document.getElementById('sat-pos').innerText = `${(randInt(-900000, 900000)/10000).toFixed(4)}, ${(randInt(-1800000, 1800000)/10000).toFixed(4)}`;
+        if(Math.random() > 0.8) document.getElementById('uplink-ip').innerText = randIP();
+    }, 1000);
+
+    // --- PACKET WATERFALL STREAM ---
+    const streamContainer = document.getElementById('log-stream');
+    const actions = ["DECRYPT", "DROP_PKT", "REROUTE", "HANDSHAKE", "INSPECT"];
+    
+    function addLog() {
+        if (streamContainer.children.length > 15) {
+            streamContainer.removeChild(streamContainer.lastChild);
+        }
+        const action = actions[randInt(0, actions.length - 1)];
+        const color = action === "DROP_PKT" ? "var(--tac-red)" : (action === "DECRYPT" ? "var(--tac-amber)" : "#55aaff");
+        
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = `
+            <span><span style="color:${color}">[${action}]</span> SRC:${randIP()}</span>
+            <span class="hex">0x${randHex(6)}</span>
+        `;
+        streamContainer.insertBefore(entry, streamContainer.firstChild);
+    }
+    
+    // Fire logs rapidly to simulate network traffic
+    setInterval(addLog, 250);
 </script>
 
 </body>
